@@ -1,5 +1,4 @@
-
-package com.codingginger.hts221;
+package com.codingginger.hts2212;
 
 import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManager;
@@ -16,8 +15,8 @@ public class HTS221 implements AutoCloseable {
     public static final int I2C_ADDRESS =  0x5f; // HTS221 I2C address
     public static final String BUS = "I2C1";
 
-    private static final int WHO_AM_I = 0x0f;
-    private static final int WHO_AM_I_RETURN = 0xBC;
+    private static final int WHO_AM_I = 0x0f; // 0b1111
+    private static final int WHO_AM_I_RETURN = 0xBC; // 0b10111100
 
     private static final int TEMP_OUT_L = 0x2A;
     private static final int TEMP_OUT_H = 0x2B;
@@ -25,8 +24,8 @@ public class HTS221 implements AutoCloseable {
     private static final int POWER_MODE_ACTIVE = 0x7;
     private static final int ODR0_SET = 0x1; // setting sensor spreading to 1Hz
     private static final int BDU_SET = 0x4;
-    private static final float MIN_TEMP_C = -40f;
-    private static final float MAX_TEMP_C = 120f;
+    private static final float MIN_TEMP_C = -40f; // Minimum temperature for this chip
+    private static final float MAX_TEMP_C = 120f; // Maximum temperature for this chip
 
     private static final int CALIB_START = 0x30;
     private static final int CALIB_END = 0x3F;
@@ -40,13 +39,18 @@ public class HTS221 implements AutoCloseable {
     @Retention(RetentionPolicy.SOURCE)
     //@IntDef({MODE_DOWN, MODE_ACTIVE})
     public @interface Mode {}
-    public static final int MODE_DOWN = ~0x80;
-    public static final int MODE_ACTIVE = 0x80;
+    public static final int MODE_DOWN = ~0b10000000; //0x80
+    public static final int MODE_ACTIVE = 0b10000000; //0x80
 
     // Main method
     public HTS221(){
         PeripheralManager pioService = PeripheralManager.getInstance();
-        I2cDevice device = pioService.openI2cDevice(BUS, I2C_ADDRESS);
+        I2cDevice device = null;
+        try {
+            device = pioService.openI2cDevice(BUS, I2C_ADDRESS);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             connect(device);
         } catch (IOException e) {
@@ -206,17 +210,17 @@ public class HTS221 implements AutoCloseable {
         }
         int data;
         int temp;
-        double deg = 0.0;
-        double t_temp = 0.0;
+        double deg;
+        double t_temp;
         data = readSample(TEMP_OUT_H);
         temp = data << 8;
         data = readSample(TEMP_OUT_L);
         temp |= data;
 
-        deg    = (double)((int)(_T1_degC) - (int)(_T0_degC))/8.0;
+        deg    = (double)((_T1_degC) - (_T0_degC))/8.0;
 
-        t_temp = (double)(((int)temp - (int)_T0_OUT) * deg) /
-                (double)((int)_T1_OUT - (int)_T0_OUT);
+        t_temp = ((temp - _T0_OUT) * deg) /
+                (double)(_T1_OUT - _T0_OUT);
         deg    = (double)((int)_T0_degC) / 8.0;
         double _temperature = deg + t_temp;
 
