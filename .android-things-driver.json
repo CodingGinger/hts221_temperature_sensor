@@ -1,0 +1,21 @@
+{
+  "title": "HTS221 driver Android Things",
+  "category": "Userspace driver",
+  "samples": ["https://github.com/CodingGinger/hts221_temperature_sensor/blob/master/src/com/codingginger/hts221/HTS221.java"],
+  "published-jar": {
+    "location": "https://github.com/CodingGinger/hts221_temperature_sensor/blob/master/hts221.jar"
+  },
+  "published-maven": {
+    "maven-url": "https://bintray.com/codingginger/HTS221/hts221_temperature_sensor/HTS221#",
+    "groupid": "com.codingginger",
+    "artifactid": "HTS221"
+  },
+  "compatible-with": [
+    {
+      "title": "Sense Hat for Raspberry Pi",
+      "photo": "https://www.raspberrypi.org/app/uploads/2017/05/Sense-HAT-462x322.jpg",
+      "url": "https://www.raspberrypi.org/products/sense-hat/",
+      "notes": "The Sense HAT is an add-on board for Raspberry Pi, made especially for the Astro Pi mission"
+    }
+  ]
+}
