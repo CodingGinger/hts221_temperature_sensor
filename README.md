@@ -3,7 +3,7 @@ Driver is written for use within android thing using a raspberry pi 3 + sense ha
 
 
 ## Usage
-### After adding HTS221.jar to your /libs folder of your poject.
+### After adding HTS221.jar to your /libs folder of your poject and import package.
 HTS221 hts221 = new HTS221();
 ### Calling PowerOn function/method:
 hts221.pOn(HTS221.MODE_ACTIVE);
