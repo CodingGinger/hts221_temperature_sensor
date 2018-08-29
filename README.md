@@ -1,5 +1,5 @@
 # HTS221 sensor driver for temperature and humidity
-Driver is written for use within android thing using a raspberry pi 3 + sense hat
+Driver is written for use within android thing using a raspberry pi 3 + sense hat.
 **__Note this driver isnt ready for production, it is published as a sampl. No guarantee or warranty is extended.__**
 
 
