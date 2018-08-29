@@ -17,9 +17,14 @@ public class HTS221 implements AutoCloseable {
 
     private static final int WHO_AM_I = 0x0f; // 0b1111
     private static final int WHO_AM_I_RETURN = 0xBC; // 0b10111100
-
+    // Temperature register address in hex
     private static final int TEMP_OUT_L = 0x2A;
     private static final int TEMP_OUT_H = 0x2B;
+    // Humidity register address in hex
+    private static final int HUMIDITY_OUT_L = 0x28;
+    private static final int HUMIDITY_OUT_H = 0x29;
+
+
     private static final int REG_CTRL = 0x20;
     private static final int POWER_MODE_ACTIVE = 0x7;
     private static final int ODR0_SET = 0x1; // setting sensor spreading to 1Hz
@@ -203,6 +208,30 @@ public class HTS221 implements AutoCloseable {
         System.out.println("Powermode off");
     }
 
+    // getHumidity method, return a double
+    public double getHumidity() throws IOException {
+        if (mDevice == null) {
+            throw new IllegalStateException("I2C device not open");
+        }
+        int data;
+        int temp;
+        double deg;
+        double h_temp;
+        data = readSample(HUMIDITY_OUT_H);
+        temp = data << 8;  // MSB
+        data = readSample(HUMIDITY_OUT_L);
+        temp |= data;      // LSB
+
+        // Decode Humidity
+        deg = ((int)(_h1_rH) - (int)(_h0_rH))/2.0;  // remove x2 multiple
+
+        // Calculate humidity in decimal of grade centigrades i.e. 15.0 = 150.
+        h_temp = ((temp - _H0_T0) * deg) /
+                (double)(_H1_T0 - _H0_T0);
+        deg    = (double)((int)_h0_rH) / 2.0; // remove x2 multiple
+        double _humidity = (deg + h_temp); // provide signed % measurement unit
+        return _humidity;
+    }
     // getTemperature method, returns a double
     public double getTemperature() throws IOException {
         if (mDevice == null) {
@@ -225,7 +254,6 @@ public class HTS221 implements AutoCloseable {
         double _temperature = deg + t_temp;
 
         return _temperature;
-
     }
 
     // readSample method called from within getTemperature method
