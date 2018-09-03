@@ -7,14 +7,17 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-
+/**
+ * @author Daniel Larsson <znixen@live.se>
+ * @version 1.0
+ */
 public class HTS221 implements AutoCloseable {
 
     private I2cDevice mDevice;
 
+    // static variables
     public static final int I2C_ADDRESS =  0x5f; // HTS221 I2C address
     public static final String BUS = "I2C1";
-
     private static final int WHO_AM_I = 0x0f; // 0b1111
     private static final int WHO_AM_I_RETURN = 0xBC; // 0b10111100
     // Temperature register address in hex
@@ -23,19 +26,15 @@ public class HTS221 implements AutoCloseable {
     // Humidity register address in hex
     private static final int HUMIDITY_OUT_L = 0x28;
     private static final int HUMIDITY_OUT_H = 0x29;
-
-
     private static final int REG_CTRL = 0x20;
     private static final int POWER_MODE_ACTIVE = 0x7;
     private static final int ODR0_SET = 0x1; // setting sensor spreading to 1Hz
     private static final int BDU_SET = 0x4;
     private static final float MIN_TEMP_C = -40f; // Minimum temperature for this chip
     private static final float MAX_TEMP_C = 120f; // Maximum temperature for this chip
-
-    private static final int CALIB_START = 0x30;
-    private static final int CALIB_END = 0x3F;
-
-    // Declare various variables
+    private static final int CALIB_START = 0x30; // Calibration start
+    private static final int CALIB_END = 0x3F; // Calibration ends
+    // Declare various non-static variables
     public boolean on;
     private int mMode;
     char _h0_rH, _h1_rH;
@@ -47,7 +46,9 @@ public class HTS221 implements AutoCloseable {
     public static final int MODE_DOWN = ~0b10000000; //0x80
     public static final int MODE_ACTIVE = 0b10000000; //0x80
 
-    // Main method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * */
     public HTS221(){
         PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = null;
@@ -67,14 +68,20 @@ public class HTS221 implements AutoCloseable {
         }
     }
 
-    // Connect method called from within main method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @param device takes an I2CDevice as a parameter
+     * */
     private void connect(I2cDevice device) throws IOException {
         mDevice = device;
         on = pOn(MODE_ACTIVE);
         dbuOn();
     }
 
-    // WhoAmi method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @param on is a boolean
+     */
     public void whoAmI(boolean on) throws IOException {
         if (on == true){
             System.out.println("It´s on!");
@@ -92,7 +99,10 @@ public class HTS221 implements AutoCloseable {
         }
     }
 
-    // Calibration method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @return returns a boolean
+     */
     public boolean storeCalib() throws IOException {
         int data;
         int temp;
@@ -157,7 +167,11 @@ public class HTS221 implements AutoCloseable {
         return true;
     }
 
-    // Power on method called from connect method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @param mode as a parameter from @Mode Interface
+     * return returns a boolean
+     */
     public boolean pOn(@Mode int mode) throws IOException {
         if (mDevice == null) {
             throw new IllegalStateException("I2C device not open");
@@ -176,7 +190,9 @@ public class HTS221 implements AutoCloseable {
         return true;
     }
 
-    //dbu on method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     */
     public void dbuOn()throws IOException{
         int data;
 
@@ -186,17 +202,23 @@ public class HTS221 implements AutoCloseable {
         System.out.println("BDU set to 1");
     }
 
-    // dbu off method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @throws IOException
+     */
     public void bduOff() throws IOException{
         int data;
-
         data = mDevice.readRegByte(REG_CTRL) & 0xff;
         data &= ~BDU_SET;
         mDevice.writeRegByte(REG_CTRL, (byte)data);
         System.out.println("BDU set to 0");
     }
 
-    // Power off method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @param mode as a parameter from @Mode Interface
+     * @throws IOException
+     */
     public void pOff(@Mode int mode) throws IOException {
         if (mDevice == null) {
             throw new IllegalStateException("I2C device not open");
@@ -208,7 +230,11 @@ public class HTS221 implements AutoCloseable {
         System.out.println("Powermode off");
     }
 
-    // getHumidity method, return a double
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @return double
+     * @throws IOException
+     */
     public double getHumidity() throws IOException {
         if (mDevice == null) {
             throw new IllegalStateException("I2C device not open");
@@ -232,7 +258,12 @@ public class HTS221 implements AutoCloseable {
         double _humidity = (deg + h_temp); // provide signed % measurement unit
         return _humidity;
     }
-    // getTemperature method, returns a double
+
+    /**
+     * @aurhor Daniel Larsson <znixen@live.se>
+     * @return double
+     * @throws IOException
+     */
     public double getTemperature() throws IOException {
         if (mDevice == null) {
             throw new IllegalStateException("I2C device not open");
@@ -256,28 +287,46 @@ public class HTS221 implements AutoCloseable {
         return _temperature;
     }
 
-    // readSample method called from within getTemperature method
+    /**
+     * @author  Daniel Larsson <znixen@live.se>
+     * @param _address
+     * @return
+     * @throws IOException
+     */
+
     private int readSample(int _address) throws IOException {
         int temp = mDevice.readRegByte(_address) & 0xff;
         return temp;
     }
 
-    // Get minimum temperature
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @return
+     */
     public float getMinTempC(){
         return MIN_TEMP_C;
     }
 
-    // Get maximum temperature
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @return float max temperature
+     */
+
     public float getMaxTempC(){
         return MAX_TEMP_C;
     }
 
-    // get current mode method
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     * @return int mMode
+     */
     public int getMode(){
         return mMode;
     }
 
-    // close method called bu autocloseable
+    /**
+     * @author Daniel Larsson <znixen@live.se>
+     */
     @Override
     public void close(){
         if (mDevice != null){
