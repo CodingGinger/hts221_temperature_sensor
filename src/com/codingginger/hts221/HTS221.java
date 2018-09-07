@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018 Daniel Larsson
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.codingginger.hts2212;
 
 import com.google.android.things.pio.I2cDevice;
@@ -51,7 +67,7 @@ enum regAddr
         return address;
     }
 }
-
+//TODO: Change calib name to something else
 enum calib
 {
     _h0_rH,
@@ -61,7 +77,8 @@ enum calib
     _H0_T0,
     _H1_T0,
     _T0_OUT,
-    _T1_OUT;
+    _T1_OUT,
+    mMode;
 
     private char c;
     private int i;
@@ -83,8 +100,9 @@ enum calib
     }
 }
 /**
- * @author Daniel Larsson <znixen@live.se> partionally based/influesed on Pololu Arduino library for Pololu LPS25H and LPS331AP boards
+ * @author Daniel Larsson <znixen@live.se> partionally based/influesed on SmartEverything ST HTS221 Humidity Sensor
  * @version 1.0
+ * Driver for SenseHat Humidity and Temperature sensor, HTS221.
  */
 public class HTS221 implements AutoCloseable {
 
@@ -92,17 +110,16 @@ public class HTS221 implements AutoCloseable {
     private static final String BUS = "I2C1";
     private static final int CALIB_START = 0x30; // Calibration start
     private static final int CALIB_END = 0x3F; // Calibration ends
-    private int mMode;
-    //private char _h0_rH, _h1_rH;
-    //private int  _T0_degC, _T1_degC, _H0_T0, _H1_T0, _T0_OUT, _T1_OUT;
 
     @Retention(RetentionPolicy.SOURCE)
-            //@IntDef({MODE_DOWN, MODE_ACTIVE})
     @interface Mode {}
     private static final int MODE_DOWN = ~0b10000000; //~0x80
     private static final int MODE_ACTIVE = 0b10000000; //0x80
 
-    HTS221(){
+    /**
+     * Creates a HTS221 driver connected on the given I2C bus.
+     */
+    public HTS221(){
         PeripheralManager pioService = PeripheralManager.getInstance();
         I2cDevice device = null;
         try {
@@ -147,6 +164,10 @@ public class HTS221 implements AutoCloseable {
         }
     }
 
+    /**
+     * Asks for calibration data to be used when temperature and humidity is pulled.
+     * @throws IOException
+     */
     private void storeCalib() throws IOException {
         int data;
         int temp;
@@ -222,6 +243,7 @@ public class HTS221 implements AutoCloseable {
     }
 
     /**
+     * Sets device in power on mode, default is power off at boot.
      * @param mode as a parameter from @Mode Interface
      * return returns a boolean
      */
@@ -237,10 +259,15 @@ public class HTS221 implements AutoCloseable {
             regCtrl |= regAddr.ODR0_SET.getAddress();
         }
         mDevice.writeRegByte(regAddr.REG_CTRL.getAddress(), (byte)(regCtrl));
-        mMode = mode;
+        calib.mMode.setI(mode);
         return true;
     }
 
+    /**
+     * Setting data block update to prohibit the lower register part to be updated,
+     * until the upper register part is also read.
+     * @throws IOException
+     */
     private void dbuOn()throws IOException{
         int data;
 
@@ -250,6 +277,7 @@ public class HTS221 implements AutoCloseable {
     }
 
     /**
+     * Setting data block update back to 0, this allows for continuously update on both registers.
      * @throws IOException
      */
     private void bduOff() throws IOException{
@@ -260,6 +288,7 @@ public class HTS221 implements AutoCloseable {
     }
 
     /**
+     * Turning off power mode for the device.
      * @param mode as a parameter from @Mode Interface
      * @throws IOException
      */
@@ -270,7 +299,7 @@ public class HTS221 implements AutoCloseable {
         int regCtrl = mDevice.readRegByte(regAddr.REG_CTRL.getAddress()) & 0xff;
         regCtrl &= ~regAddr.POWER_MODE_ACTIVE.getAddress();
         mDevice.writeRegByte(regAddr.REG_CTRL.getAddress(), (byte)(regCtrl));
-        mMode = mode;
+        calib.mMode.setI(mode);
     }
 
     /**
@@ -327,10 +356,10 @@ public class HTS221 implements AutoCloseable {
     }
 
     /**
+     * Method for reading register.
      * @param _address
      * @throws IOException
      */
-
     private int readSample(int _address) throws IOException {
         return mDevice.readRegByte(_address) & 0xff;
     }
@@ -368,16 +397,19 @@ public class HTS221 implements AutoCloseable {
      * @return int mMode
      */
     public int getMode(){
-        return mMode;
+        return calib.mMode.getI();
     }
 
+    /**
+     * Close method
+     */
     @Override
     public void close(){
         if (mDevice != null){
             try {
-                mDevice.close();
                 bduOff();
                 pOff(MODE_DOWN);
+                mDevice.close();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
