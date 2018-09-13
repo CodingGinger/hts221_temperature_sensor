@@ -24,12 +24,31 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 
-
+/**
+ * Sensor range
+ * <li>{@link #MIN_TEMP_C}</li>
+ * <li>{@link #MAX_TEMP_C}</li>
+ * <li>{@link #MIN_HUM}</li>
+ * <li>{@link #MAX_HUM}</li>
+ *
+ */
 enum range
 {
+    /**
+     * Minimum temperature for this sensor
+     */
     MIN_TEMP_C("-40f"),
+    /**
+     * Maximum temperature for this sensor
+     */
     MAX_TEMP_C("120f"),
+    /**
+     * Minimum humidity for this sensor
+     */
     MIN_HUM("0%"),
+    /**
+     * Maximum humidity for this sensor
+     */
     MAX_HUM("100%");
 
     private String value;
@@ -43,18 +62,65 @@ enum range
     }
 }
 
+/**
+ * Register address
+ * <li>{@link #I2C_ADDRESS}</li>
+ * <li>{@link #TEMP_OUT_L}</li>
+ * <li>{@link #TEMP_OUT_H}</li>
+ * <li>{@link #HUMIDITY_OUT_L}</li>
+ * <li>{@link #HUMIDITY_OUT_H}</li>
+ * <li>{@link #WHO_AM_I}</li>
+ * <li>{@link #WHO_AM_I_RETURN}</li>
+ * <li>{@link #REG_CTRL}</li>
+ * <li>{@link #ODR0_SET}</li>
+ * <li>{@link #BDU_SET}</li>
+ * <li>{@link #POWER_MODE_ACTIVE}</li>
+ */
 enum regAddr
 {
+    /**
+     * Chip id HTS221
+     */
     I2C_ADDRESS(0x5f),
+    /**
+     * Temperature LSB
+     */
     TEMP_OUT_L(0x2A),
+    /**
+     * Temperature MSB
+     */
     TEMP_OUT_H(0x2B),
+    /**
+     * Humidity LSB
+     */
     HUMIDITY_OUT_L(0x28),
+    /**
+     * Humidity MSB
+     */
     HUMIDITY_OUT_H(0x29),
+    /**
+     * Device identification
+     */
     WHO_AM_I(0x0f),
+    /**
+     * Device identifier
+     */
     WHO_AM_I_RETURN(0xBC),
+    /**
+     * Control register 1
+     */
     REG_CTRL(0x20),
+    /**
+     * Output data rate
+     */
     ODR0_SET(0x1),
+    /**
+     * Block Device update
+     */
     BDU_SET(0x4),
+    /**
+     * Power control, Active
+     */
     POWER_MODE_ACTIVE(0x7);
 
     private int address;
@@ -67,7 +133,10 @@ enum regAddr
         return address;
     }
 }
-//TODO: Change calib name to something else
+//TODO: Change calib name to something more relevant
+/**
+ * Calibration
+ */
 enum calib
 {
     _h0_rH,
@@ -110,6 +179,8 @@ public class HTS221 implements AutoCloseable {
     private static final String BUS = "I2C1";
     private static final int CALIB_START = 0x30; // Calibration start
     private static final int CALIB_END = 0x3F; // Calibration ends
+
+
 
     @Retention(RetentionPolicy.SOURCE)
     @interface Mode {}
@@ -364,6 +435,8 @@ public class HTS221 implements AutoCloseable {
         return mDevice.readRegByte(_address) & 0xff;
     }
 
+
+
     /**
      * @return String min temperature
      */
@@ -417,4 +490,10 @@ public class HTS221 implements AutoCloseable {
             }
         }
     }
+
+
+
+
+
 }
+
